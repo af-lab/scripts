@@ -1,0 +1,14 @@
+This repository has a collection of different scripts written and used in our
+lab. They vary widely by application and the organization of the repository is
+a bit loose, so make sure you check all the subdirectories.
+
+Note that each script may be written on its own language and be dependent on
+external libraries and/or applications such as BioPerl.
+
+  * bioinformatics/ - bioinformatics scripts such as sequence analysis
+
+  * chemistry/      - chemical analysis such as pH, concentrations
+
+  * cloning/        - help in cloning such as designing of genes and primers
+
+  * microscopy/     - analysis of microscopy images
