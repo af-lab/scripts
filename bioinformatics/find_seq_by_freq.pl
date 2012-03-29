@@ -17,9 +17,9 @@
 ## Thanks to Altreus, anno, uri and tybalt89 from freenode's #perl
 
 my $positive_aa = "gs";           # amino acids that count
-my $min_number  = 6.9;            # minimum number of $positive_aa to count
+my $min_number  = 7;              # minimum number of $positive_aa to count
 my $window_size = 10;             # size of the window to look for $min_number of $positive_aa
-my $total_freq  = 10;             # frequency of $positive_aa. The average number of aa to find ONE of the aa in $positive_aa
+my $total_freq  = 6.9;            # frequency of $positive_aa. The average number of aa to find ONE of the aa in $positive_aa
 my $brute_force = 0;              # use brute force (not very efficient at all). You should NOT need to do this
 
 ## note that this script might fail or silently not work properly when $window_size
