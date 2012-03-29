@@ -1,1 +1,7 @@
 List of scripts and their application:
+
+  * Library.txt   - to place in ImageJ macro/ directory. It implements different
+                    new functions for other macros to use (other ImageJ macros
+                    from this list are likely to need this file). These new
+                    functions allow for cleaner code for array manipulation,
+                    transversing a directory tree, etc...

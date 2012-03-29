@@ -1,0 +1,145 @@
+// "Functions library to overcome limitations of ImageJ macro language"
+// Copyright (c) 2011-2012 Carnë Draug
+//
+// This program is free software; you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation; either version 3 of the License, or
+// (at your option) any later version.
+// 
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with this program; If not, see <http://www.gnu.org/licenses/>.
+
+////////////////////////////////////////////////////////////////////////////////
+// Non-messy functions
+////////////////////////////////////////////////////////////////////////////////
+
+// opens an image and returns its ID
+function open_ID (filename) {
+  open(filename);
+  ID = getImageID();
+  return ID;
+}
+
+// closes the image with the specified ID
+function close_by_ID(ID) {
+  selectImage(ID);
+  close();
+}
+
+// Returns the list of files a directory with the specified extension. It's recursive
+function get_cleansed_file_list (dir, extension) {
+
+  // if extension is not given with the dot, add it
+  if (startsWith(extension, ".")) {
+    extension = "."+extension;
+  }
+
+  list      = getFileList(dir);
+  // the function newArray doesn't with no arguments, must really start that way
+  cleansed  = newArray(1);
+
+  for (i=0; i<list.length; i++) {
+    tmp = dir + list[i];
+    if (endsWith(list[i], toUpperCase(extension)) || endsWith(list[i], toLowerCase(extension))) {
+      // if the first value is a zero, it's the first value to be entered on the
+      // array and must replace the one entered to create it
+      if (cleansed[0] == 0) {
+        cleansed[0] = tmp;
+      } else {
+        cleansed    = append_to_array (tmp, cleansed);
+      }
+    // if it's a directory, go recursive and get the files from there
+    } else if (File.isDirectory(tmp)) {
+      new_list  = get_cleansed_file_list (tmp, extension);
+      // if the first value is a zero, it's the first value to be entered on the
+      // array and must replace the one entered to create it
+      if (cleansed[0] == 0) {
+        cleansed  = new_list;
+      } else if (new_list.length == 1 && new_list[0] == 0) {
+        // do nothing, this directory had no good file and appending it will
+        // append a zero to the list
+      } else {
+        cleansed  = concatenate_array (cleansed, new_list);
+      }
+    } else {
+      // do nothing, not the right file type
+    }
+  }
+//  print (cleansed.length);
+  return cleansed;
+}
+
+// Calculates the sum of the intensities of each pixel in the selection
+function get_intensity_sum() {
+  nBins = 256;
+  total = 0;
+  getHistogram(values, counts, nBins);
+  for (i=values[0]; i<values[nBins-1]; i++) {
+    total = total + (values[i]*counts[i]);
+  }
+  return total;
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+// New array functions
+////////////////////////////////////////////////////////////////////////////////
+
+// Adds all values from array2 to the end of array 1. Returns a new array.
+function concatenate_array (array1, array2) {
+  length_1  = lengthOf(array1);
+  length_2  = lengthOf(array2);
+  new       = newArray(length_1 + length_2);
+  for (i=0; i<length_1; i++) {
+    new[i] = array1[i];
+  }
+  for (i=0; i<length_2; i++) {
+    new[length_1 + i] = array2[i];
+  }
+  return new;
+}
+
+// Remove the value with specific index from array. Returns a new array
+function remove_from_array (array, index) {
+  length  = lengthOf(array);
+  new     = newArray(length - 1);
+  for (i=0; i<index; i++) {
+    new[i] = array[i];
+  }
+  for (i=(index+1); i<length; i++) {
+    new[i] = array[i];
+  }
+  return new;
+}
+
+// Adds value at position in array. If necessary, expanding it. returns a new array
+function add_to_array (value, array, position) {
+  ori_length = lengthOf(array);
+  if (position < ori_length) {
+    array[position] = value;
+    return array;
+  } else {
+    new = newArray(position + 1);
+    for (i=0; i<ori_length; i++) {
+      new[i] = array[i];
+    }
+    new[position] = value;
+    return new;
+  }
+}
+
+// Appends value to the end of array. Returns a new array.
+function append_to_array (value, array) {
+  ori_length  = lengthOf(array);
+  new         = newArray(ori_length + 1);
+  for (i=0; i<ori_length; i++) {
+    new[i] = array[i];
+  }
+  new[ori_length] = value;
+  return new;
+}
