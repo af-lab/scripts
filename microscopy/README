@@ -1,5 +1,8 @@
 List of scripts and their application:
 
+  * draw.ijm      - make useful drawings on the image, non-destructive, with
+                    overlays.
+
   * Library.txt   - to place in ImageJ macro/ directory. It implements different
                     new functions for other macros to use (other ImageJ macros
                     from this list are likely to need this file). These new
