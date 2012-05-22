@@ -123,16 +123,25 @@ function [varargout] = similarity_heatmap (a, b, varargin)
   a = normalize (a, mask);
   b = normalize (b, mask);
 
+  ## having zeros makes things weird too. If both images have their minimum on
+  ## the same coordinates, we will end up diving 0/0 which returns NaN. Also,
+  ## anything that will divide 0, will always return zero, even their values are
+  ## quite similar (0/eps is the minimum difference that we can measure but would
+  ## still give 0 which means completely different). To avoid this, we make all
+  ## instances of zero, the value eps..
+  ## this could be in the code of normalize() but I want to make it clear here
+  a(a == 0) = eps;
+  b(b == 0) = eps;
+
   ratio = zeros (size (a));
   min_ind = a < b;
-  ratio(min_ind) = a(min_ind) ./ b(min_ind);
+  ratio(min_ind)  = a(min_ind)  ./ b(min_ind);
   ratio(!min_ind) = b(!min_ind) ./ a(!min_ind);
   if (back)
     ratio(!mask) = 1;
   else
     ratio(!mask) = 0;
   endif
-
 
   if (nargout > 0)
     varargout{1} = ratio;
