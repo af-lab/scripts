@@ -9,7 +9,7 @@ List of scripts and their application:
                     functions allow for cleaner code for array manipulation,
                     transversing a directory tree, etc...
 
-  * similarity_heatmap.m  - this octave function draws an heatmap of the 
-                    similarity between two matrixes. It was designed to find
-                    regions in a cell with different intensity given two images
+  * diff_heatmap.m - this octave function draws an heatmap of the 
+                    difference between two matrixes. It was designed to find
+                    regions in a cell with different intensities given two images
                     of different fluorophores.
