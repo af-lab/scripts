@@ -3,3 +3,7 @@ List of scripts and their application:
   * find_seq_by_freq  - search amino acid sequences for short sequences specially
                         rich in something. For example, search protein sequences
                         for 10aa spaces with >7 [GS] (for hypothetical hinges)
+
+  * pretty_fasta      - saves sequence in a fasta format with controlled whitespace
+                        for ease of read and count
+
