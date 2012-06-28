@@ -35,7 +35,7 @@ function close_by_ID(ID) {
 function get_cleansed_file_list (dir, extension) {
 
   // if extension is not given with the dot, add it
-  if (startsWith(extension, ".")) {
+  if (!startsWith(extension, ".")) {
     extension = "."+extension;
   }
 
