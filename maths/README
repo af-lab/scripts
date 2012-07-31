@@ -1,0 +1,4 @@
+List of scripts and their application:
+
+  * fit_exponential_decay - simple Octave script to reada CSV file and fit the
+                            data to an exponential decay curve.
