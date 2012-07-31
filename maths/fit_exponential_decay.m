@@ -1,4 +1,4 @@
-#! /home/carandraug/.usr/bin/octave -qf
+#!/usr/bin/octave -qf
 ##
 ## Copyright (C) 2012 Carnë Draug <carandraug+dev@gmail.com>
 ##
