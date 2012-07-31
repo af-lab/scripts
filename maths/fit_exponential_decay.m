@@ -64,9 +64,9 @@ decay_constant = coeff(1);
 mean_lifetime  = 1/decay_constant;
 y0             = exp (coeff(2));
 
-disp (sprintf ("decay constant (lambda) is   %g", decay_constant));
-disp (sprintf ("mean lifetime (tau) is       %g", mean_lifetime));
-disp (sprintf ("value of y at x=0 is         %g", y0));
-disp ("");
-disp (sprintf ("Function is y = %g * e^(%g * x)", y0, decay_constant));
-disp (sprintf ("In Octave, use @(x) %g * exp(%g * x)", y0, decay_constant));
+printf ("decay constant (lambda) is   %g\n", decay_constant);
+printf ("mean lifetime (tau) is       %g\n", mean_lifetime);
+printf ("value of y at x=0 is         %g\n", y0);
+printf ("\n");
+printf ("Function is y = %g * e^(%g * x)\nIn Octave, use @(x) %g * exp(%g * x)\n",
+        y0, decay_constant, y0, decay_constant);
