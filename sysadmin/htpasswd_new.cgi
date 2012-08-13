@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 ## Copyright (C) 2010 Carnë Draug <carandraug+dev@gmail.com>
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -14,7 +14,8 @@
 ## You should have received a copy of the GNU Affero General Public License
 ## along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-use strict; # Enforce some good programming rules
+use strict;                     # Enforce some good programming rules
+use warnings;                   # Replacement for the -w flag, but lexically scoped
 use File::Temp qw(tempfile);
 use CGI qw/:standard :cgi/;
 
