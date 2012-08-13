@@ -1,1 +1,19 @@
 List of scripts and their application:
+
+  * labels.js         - javascript for the LAT HTML pages. It implements the
+                        `calculator' that helps on making similar labels.
+
+  * LAT_processor.pm  - Perl module to deal with the LAT59 and LAT7 labels from
+                        Bradley.
+
+  * LAT59.html        - HTML page to help with writing labels for the LAT59 model
+                        from Bradley. Depends on LAT59_creator.pl and labels.js.
+
+  * LAT7.html         - HTML page to help with writing labels for the LAT7 model
+                        from Bradley. Depends on LAT7_creator.pl and labels.js.
+
+  * LAT59_creator.pl  - script to call the LAT_processor module for the LAT59
+                        model. Obviously, depends on LAT_processor.pm
+
+  * LAT7_creator.pl   - script to call the LAT_processor module for the LAT7
+                        model. Obviously, depends on LAT_processor.pm

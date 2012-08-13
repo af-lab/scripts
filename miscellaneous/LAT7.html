@@ -1,0 +1,632 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!--
+  Copyright (C) 2010 Carnë Draug <carandraug+dev@gmail.com>
+
+  This program is free software; you can redistribute it and/or modify
+  it under the terms of the GNU Affero General Public License as published by
+  the Free Software Foundation; either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU Affero General Public License for more details.
+
+  You should have received a copy of the GNU Affero General Public License
+  along with this program; if not, see <http://www.gnu.org/licenses/>.
+-->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta name="generator" content=
+  "HTML Tidy for Linux/x86 (vers 7 December 2008), see www.w3.org" />
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+  <title>label PDF creator</title>
+  <link href="styles.css" rel="stylesheet" type="text/css" />
+  <script type="text/JavaScript" language="JavaScript" src="labels.js"></script>
+  <noscript>Your browser does not support JavaScript! You should activate it to use the controls</noscript>
+</head>
+
+<body style="text-align:center">
+
+  <script type="text/javascript" defer="defer">
+    //<![CDATA[
+    var row_limit   = 7;
+    var col_limit   = 20;
+    var good_color  = "#66cc66";   // good color is green
+    var bad_color   = "#ff6666";   // bad color is red
+
+    // because the page can be refreshed with the old RGB values (maybe wrong
+    // one), check for them after page load (hence the defer on the script tag)
+    check_color('rrr');
+    check_color('ggg');
+    check_color('bbb');
+    //]]>
+  </script>
+
+  <form name="calculator" id="calculator">
+    <!--This table encloses the top part, configuration-->
+    <table border="0" cellspacing="20" cellpadding="0" summary="data manipulation" style="margin:auto">
+      <tr>
+        <td>
+          <!-- This table encloses the calculator-->
+          <table border="0" cellspacing="0" cellpadding="0" summary="calculator">
+            <tr>
+              <td colspan="9">select working mode</td>
+            </tr>
+
+            <tr>
+              <td colspan="9">
+                <input type="radio" checked="checked" name="work_mode" value="deleting" /><small>delete</small>
+                <input type="radio" checked="checked" name="work_mode" value="copying" /><small>copy</small>
+                <input type="radio" checked="checked" name="work_mode" value="pasting" /><small>paste</small>
+              </td>
+            </tr>
+
+            <tr>
+              <td colspan="9"><textarea name="selected_text" rows="3" id="selected_text"></textarea></td>
+            </tr>
+
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','x')" value="X,XX" id="0-0button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','x')" value="1,XX" id="1-0button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','x')" value="2,XX" id="2-0button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','x')" value="3,XX" id="3-0button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','x')" value="4,XX" id="4-0button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','x')" value="5,XX" id="5-0button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','x')" value="6,XX" id="6-0button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','x')" value="7,XX" id="7-0button" /></td>
+            </tr>
+
+            <tr>
+              <td colspan="9" height="10px"></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','1')" value="X,01" id="0-1button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','1')" value="1,01" id="1-1button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','1')" value="2,01" id="2-1button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','1')" value="3,01" id="3-1button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','1')" value="4,01" id="4-1button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','1')" value="5,01" id="5-1button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','1')" value="6,01" id="6-1button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','1')" value="7,01" id="7-1button" /></td>
+
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','2')" value="X,02" id="0-2button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','2')" value="1,02" id="1-2button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','2')" value="2,02" id="2-2button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','2')" value="3,02" id="3-2button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','2')" value="4,02" id="4-2button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','2')" value="5,02" id="5-2button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','2')" value="6,02" id="6-2button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','2')" value="7,02" id="7-2button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','3')" value="X,03" id="0-3button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','3')" value="1,03" id="1-3button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','3')" value="2,03" id="2-3button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','3')" value="3,03" id="3-3button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','3')" value="4,03" id="4-3button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','3')" value="5,03" id="5-3button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','3')" value="6,03" id="6-3button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','3')" value="7,03" id="7-3button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','4')" value="X,04" id="0-4button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','4')" value="1,04" id="1-4button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','4')" value="2,04" id="2-4button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','4')" value="3,04" id="3-4button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','4')" value="4,04" id="4-4button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','4')" value="5,04" id="5-4button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','4')" value="6,04" id="6-4button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','4')" value="7,04" id="7-4button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','5')" value="X,05" id="0-5button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','5')" value="1,05" id="1-5button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','5')" value="2,05" id="2-5button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','5')" value="3,05" id="3-5button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','5')" value="4,05" id="4-5button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','5')" value="5,05" id="5-5button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','5')" value="6,05" id="6-5button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','5')" value="7,05" id="7-5button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','6')" value="X,06" id="0-6button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','6')" value="1,06" id="1-6button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','6')" value="2,06" id="2-6button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','6')" value="3,06" id="3-6button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','6')" value="4,06" id="4-6button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','6')" value="5,06" id="5-6button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','6')" value="6,06" id="6-6button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','6')" value="7,06" id="7-6button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','7')" value="X,07" id="0-7button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','7')" value="1,07" id="1-7button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','7')" value="2,07" id="2-7button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','7')" value="3,07" id="3-7button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','7')" value="4,07" id="4-7button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','7')" value="5,07" id="5-7button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','7')" value="6,07" id="6-7button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','7')" value="7,07" id="7-7button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','8')" value="X,08" id="0-8button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','8')" value="1,08" id="1-8button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','8')" value="2,08" id="2-8button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','8')" value="3,08" id="3-8button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','8')" value="4,08" id="4-8button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','8')" value="5,08" id="5-8button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','8')" value="6,08" id="6-8button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','8')" value="7,08" id="7-8button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','9')" value="X,09" id="0-9button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','9')" value="1,09" id="1-9button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','9')" value="2,09" id="2-9button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','9')" value="3,09" id="3-9button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','9')" value="4,09" id="4-9button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','9')" value="5,09" id="5-9button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','9')" value="6,09" id="6-9button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','9')" value="7,09" id="7-9button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','10')" value="X,10" id="0-10button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','10')" value="1,10" id="1-10button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','10')" value="2,10" id="2-10button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','10')" value="3,10" id="3-10button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','10')" value="4,10" id="4-10button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','10')" value="5,10" id="5-10button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','10')" value="6,10" id="6-10button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','10')" value="7,10" id="7-10button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','11')" value="X,11" id="0-11button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','11')" value="1,11" id="1-11button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','11')" value="2,11" id="2-11button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','11')" value="3,11" id="3-11button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','11')" value="4,11" id="4-11button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','11')" value="5,11" id="5-11button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','11')" value="6,11" id="6-11button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','11')" value="7,11" id="7-11button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','12')" value="X,12" id="0-12button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','12')" value="1,12" id="1-12button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','12')" value="2,12" id="2-12button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','12')" value="3,12" id="3-12button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','12')" value="4,12" id="4-12button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','12')" value="5,12" id="5-12button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','12')" value="6,12" id="6-12button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','12')" value="7,12" id="7-12button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','13')" value="X,13" id="0-13button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','13')" value="1,13" id="1-13button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','13')" value="2,13" id="2-13button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','13')" value="3,13" id="3-13button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','13')" value="4,13" id="4-13button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','13')" value="5,13" id="5-13button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','13')" value="6,13" id="6-13button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','13')" value="7,13" id="7-13button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','14')" value="X,14" id="0-14button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','14')" value="1,14" id="1-14button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','14')" value="2,14" id="2-14button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','14')" value="3,14" id="3-14button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','14')" value="4,14" id="4-14button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','14')" value="5,14" id="5-14button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','14')" value="6,14" id="6-14button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','14')" value="7,14" id="7-14button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','15')" value="X,15" id="0-15button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','15')" value="1,15" id="1-15button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','15')" value="2,15" id="2-15button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','15')" value="3,15" id="3-15button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','15')" value="4,15" id="4-15button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','15')" value="5,15" id="5-15button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','15')" value="6,15" id="6-15button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','15')" value="7,15" id="7-15button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','16')" value="X,16" id="0-16button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','16')" value="1,16" id="1-16button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','16')" value="2,16" id="2-16button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','16')" value="3,16" id="3-16button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','16')" value="4,16" id="4-16button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','16')" value="5,16" id="5-16button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','16')" value="6,16" id="6-16button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','16')" value="7,16" id="7-16button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','17')" value="X,17" id="0-17button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','17')" value="1,17" id="1-17button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','17')" value="2,17" id="2-17button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','17')" value="3,17" id="3-17button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','17')" value="4,17" id="4-17button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','17')" value="5,17" id="5-17button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','17')" value="6,17" id="6-17button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','17')" value="7,17" id="7-17button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','18')" value="X,18" id="0-18button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','18')" value="1,18" id="1-18button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','18')" value="2,18" id="2-18button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','18')" value="3,18" id="3-18button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','18')" value="4,18" id="4-18button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','18')" value="5,18" id="5-18button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','18')" value="6,18" id="6-18button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','18')" value="7,18" id="7-18button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','19')" value="X,19" id="0-19button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','19')" value="1,19" id="1-19button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','19')" value="2,19" id="2-19button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','19')" value="3,19" id="3-19button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','19')" value="4,19" id="4-19button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','19')" value="5,19" id="5-19button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','19')" value="6,19" id="6-19button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','19')" value="7,19" id="7-19button" /></td>
+            </tr>
+
+            <tr>
+              <td><input type="button" onclick="text_manipulator('x','20')" value="X,20" id="0-20button" /></td>
+              <td width="10px"></td>
+              <td><input type="button" onclick="text_manipulator('1','20')" value="1,20" id="1-20button" /></td>
+              <td><input type="button" onclick="text_manipulator('2','20')" value="2,20" id="2-20button" /></td>
+              <td><input type="button" onclick="text_manipulator('3','20')" value="3,20" id="3-20button" /></td>
+              <td><input type="button" onclick="text_manipulator('4','20')" value="4,20" id="4-20button" /></td>
+              <td><input type="button" onclick="text_manipulator('5','20')" value="5,20" id="5-20button" /></td>
+              <td><input type="button" onclick="text_manipulator('6','20')" value="6,20" id="6-20button" /></td>
+              <td><input type="button" onclick="text_manipulator('7','20')" value="7,20" id="7-20button" /></td>
+            </tr>
+
+          </table>
+        </td>
+
+        <td valign="top">
+          <!-- This table encloses the setting and buttons of variables to be replaced
+          and the last row sets the color for the text-->
+          <table border="0" cellspacing="0" cellpadding="0" summary="variable list" border="10">
+            <tr>
+              <td>Start value for $1:</td>
+              <td><input type="text" name="variable1start" size="3" id="variable1start" /></td>
+              <td><input type="button" onclick="replace_variable(1)" value="Replace $1" /></td>
+            </tr>
+
+            <tr>
+              <td>Start value for $2:</td>
+              <td><input type="text" name="variable2start" size="3" id="variable2start" /></td>
+              <td><input type="button" onclick="replace_variable(2)" value="Replace $2" /></td>
+            </tr>
+
+            <tr>
+              <td>Start value for $3:</td>
+              <td><input type="text" name="variable3start" size="3" id="variable3start" /></td>
+              <td><input type="button" onclick="replace_variable(3)" value="Replace $3" /></td>
+            </tr>
+
+            <tr>
+              <td>Start value for $4:</td>
+              <td><input type="text" name="variable4start" size="3" id="variable4start" /></td>
+              <td><input type="button" onclick="replace_variable(4)" value="Replace $4" /></td>
+            </tr>
+            <tr>
+              <td colspan="3">&nbsp;</td>
+            </tr>
+
+            <tr>
+              <td colspan="3">Choose text color:<br/>
+                <button type="button" onclick="set_color(0,0,0)" style="width:80px">Black</button><br/>
+                <button type="button" onclick="set_color(255,0,0)" style="width:80px">Red</button><br/>
+                <button type="button" onclick="set_color(0,255,0)" style="width:80px">Green</button><br/>
+                <button type="button" onclick="set_color(0,0,255)" style="width:80px">Blue</button><br/>
+                <button type="button" onclick="set_color(255,255,0)" style="width:80px">Yellow</button><br/>
+
+              </td>
+            </tr>
+          </table>
+        </td>
+
+
+      </tr>
+    </table>
+  </form>
+
+  <form name="form" method="post" action="/cgi-bin/LAT7_creator.pl" id="form" onsubmit="check_submission()">
+    <input type="submit" value="Get me the pdf"/>
+    <table border="0" cellspacing="10" cellpadding="0" summary="color-definition" style="margin:auto">
+      <tr>
+        <td>
+          <small>RGB values for text color (values between 0 and 255)<br/>
+          Red   <input type="text" name="red-value"  id="rrr" maxlength="6" size ="6" onkeyup="check_color('rrr')" value="0" style="background-color:#66cc66"/>
+          Green <input type="text" name="green-value" id="ggg" maxlength="6" size ="6" onkeyup="check_color('ggg')" value="0" style="background-color:#66cc66"/>
+          Blue  <input type="text" name="blue-value" id="bbb" maxlength="6" size ="6" onkeyup="check_color('bbb')" value="0" style="background-color:#66cc66"/>
+          </small>
+        </td>
+      </tr>
+    </table>
+
+    <!-- This table encloses all the textareas that will be the text on the labels -->
+    <table border="0" cellspacing="10" cellpadding="0" summary="LAT-59 model" style="margin:auto">
+      <tr>
+        <td>&nbsp;</td>
+        <td>Column 1</td>
+        <td>Column 2</td>
+        <td>Column 3</td>
+        <td>Column 4</td>
+        <td>Column 5</td>
+        <td>Column 6</td>
+        <td>Column 7</td>
+      </tr>
+
+      <tr>
+        <td>Row 1</td>
+        <td><textarea name="1,1" rows="3" id="1-1"></textarea></td>
+        <td><textarea name="2,1" rows="3" id="2-1"></textarea></td>
+        <td><textarea name="3,1" rows="3" id="3-1"></textarea></td>
+        <td><textarea name="4,1" rows="3" id="4-1"></textarea></td>
+        <td><textarea name="5,1" rows="3" id="5-1"></textarea></td>
+        <td><textarea name="6,1" rows="3" id="6-1"></textarea></td>
+        <td><textarea name="7,1" rows="3" id="7-1"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 2</td>
+        <td><textarea name="1,2" rows="3" id="1-2"></textarea></td>
+        <td><textarea name="2,2" rows="3" id="2-2"></textarea></td>
+        <td><textarea name="3,2" rows="3" id="3-2"></textarea></td>
+        <td><textarea name="4,2" rows="3" id="4-2"></textarea></td>
+        <td><textarea name="5,2" rows="3" id="5-2"></textarea></td>
+        <td><textarea name="6,2" rows="3" id="6-2"></textarea></td>
+        <td><textarea name="7,2" rows="3" id="7-2"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 3</td>
+        <td><textarea name="1,3" rows="3" id="1-3"></textarea></td>
+        <td><textarea name="2,3" rows="3" id="2-3"></textarea></td>
+        <td><textarea name="3,3" rows="3" id="3-3"></textarea></td>
+        <td><textarea name="4,3" rows="3" id="4-3"></textarea></td>
+        <td><textarea name="5,3" rows="3" id="5-3"></textarea></td>
+        <td><textarea name="6,3" rows="3" id="6-3"></textarea></td>
+        <td><textarea name="7,3" rows="3" id="7-3"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 4</td>
+        <td><textarea name="1,4" rows="3" id="1-4"></textarea></td>
+        <td><textarea name="2,4" rows="3" id="2-4"></textarea></td>
+        <td><textarea name="3,4" rows="3" id="3-4"></textarea></td>
+        <td><textarea name="4,4" rows="3" id="4-4"></textarea></td>
+        <td><textarea name="5,4" rows="3" id="5-4"></textarea></td>
+        <td><textarea name="6,4" rows="3" id="6-4"></textarea></td>
+        <td><textarea name="7,4" rows="3" id="7-4"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 5</td>
+        <td><textarea name="1,5" rows="3" id="1-5"></textarea></td>
+        <td><textarea name="2,5" rows="3" id="2-5"></textarea></td>
+        <td><textarea name="3,5" rows="3" id="3-5"></textarea></td>
+        <td><textarea name="4,5" rows="3" id="4-5"></textarea></td>
+        <td><textarea name="5,5" rows="3" id="5-5"></textarea></td>
+        <td><textarea name="6,5" rows="3" id="6-5"></textarea></td>
+        <td><textarea name="7,5" rows="3" id="7-5"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 6</td>
+        <td><textarea name="1,6" rows="3" id="1-6"></textarea></td>
+        <td><textarea name="2,6" rows="3" id="2-6"></textarea></td>
+        <td><textarea name="3,6" rows="3" id="3-6"></textarea></td>
+        <td><textarea name="4,6" rows="3" id="4-6"></textarea></td>
+        <td><textarea name="5,6" rows="3" id="5-6"></textarea></td>
+        <td><textarea name="6,6" rows="3" id="6-6"></textarea></td>
+        <td><textarea name="7,6" rows="3" id="7-6"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 7</td>
+        <td><textarea name="1,7" rows="3" id="1-7"></textarea></td>
+        <td><textarea name="2,7" rows="3" id="2-7"></textarea></td>
+        <td><textarea name="3,7" rows="3" id="3-7"></textarea></td>
+        <td><textarea name="4,7" rows="3" id="4-7"></textarea></td>
+        <td><textarea name="5,7" rows="3" id="5-7"></textarea></td>
+        <td><textarea name="6,7" rows="3" id="6-7"></textarea></td>
+        <td><textarea name="7,7" rows="3" id="7-7"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 8</td>
+        <td><textarea name="1,8" rows="3" id="1-8"></textarea></td>
+        <td><textarea name="2,8" rows="3" id="2-8"></textarea></td>
+        <td><textarea name="3,8" rows="3" id="3-8"></textarea></td>
+        <td><textarea name="4,8" rows="3" id="4-8"></textarea></td>
+        <td><textarea name="5,8" rows="3" id="5-8"></textarea></td>
+        <td><textarea name="6,8" rows="3" id="6-8"></textarea></td>
+        <td><textarea name="7,8" rows="3" id="7-8"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 9</td>
+        <td><textarea name="1,9" rows="3" id="1-9"></textarea></td>
+        <td><textarea name="2,9" rows="3" id="2-9"></textarea></td>
+        <td><textarea name="3,9" rows="3" id="3-9"></textarea></td>
+        <td><textarea name="4,9" rows="3" id="4-9"></textarea></td>
+        <td><textarea name="5,9" rows="3" id="5-9"></textarea></td>
+        <td><textarea name="6,9" rows="3" id="6-9"></textarea></td>
+        <td><textarea name="7,9" rows="3" id="7-9"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 10</td>
+        <td><textarea name="1,10" rows="3" id="1-10"></textarea></td>
+        <td><textarea name="2,10" rows="3" id="2-10"></textarea></td>
+        <td><textarea name="3,10" rows="3" id="3-10"></textarea></td>
+        <td><textarea name="4,10" rows="3" id="4-10"></textarea></td>
+        <td><textarea name="5,10" rows="3" id="5-10"></textarea></td>
+        <td><textarea name="6,10" rows="3" id="6-10"></textarea></td>
+        <td><textarea name="7,10" rows="3" id="7-10"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 11</td>
+        <td><textarea name="1,11" rows="3" id="1-11"></textarea></td>
+        <td><textarea name="2,11" rows="3" id="2-11"></textarea></td>
+        <td><textarea name="3,11" rows="3" id="3-11"></textarea></td>
+        <td><textarea name="4,11" rows="3" id="4-11"></textarea></td>
+        <td><textarea name="5,11" rows="3" id="5-11"></textarea></td>
+        <td><textarea name="6,11" rows="3" id="6-11"></textarea></td>
+        <td><textarea name="7,11" rows="3" id="7-11"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 12</td>
+        <td><textarea name="1,12" rows="3" id="1-12"></textarea></td>
+        <td><textarea name="2,12" rows="3" id="2-12"></textarea></td>
+        <td><textarea name="3,12" rows="3" id="3-12"></textarea></td>
+        <td><textarea name="4,12" rows="3" id="4-12"></textarea></td>
+        <td><textarea name="5,12" rows="3" id="5-12"></textarea></td>
+        <td><textarea name="6,12" rows="3" id="6-12"></textarea></td>
+        <td><textarea name="7,12" rows="3" id="7-12"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 13</td>
+        <td><textarea name="1,13" rows="3" id="1-13"></textarea></td>
+        <td><textarea name="2,13" rows="3" id="2-13"></textarea></td>
+        <td><textarea name="3,13" rows="3" id="3-13"></textarea></td>
+        <td><textarea name="4,13" rows="3" id="4-13"></textarea></td>
+        <td><textarea name="5,13" rows="3" id="5-13"></textarea></td>
+        <td><textarea name="6,13" rows="3" id="6-13"></textarea></td>
+        <td><textarea name="7,13" rows="3" id="7-13"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 14</td>
+        <td><textarea name="1,14" rows="3" id="1-14"></textarea></td>
+        <td><textarea name="2,14" rows="3" id="2-14"></textarea></td>
+        <td><textarea name="3,14" rows="3" id="3-14"></textarea></td>
+        <td><textarea name="4,14" rows="3" id="4-14"></textarea></td>
+        <td><textarea name="5,14" rows="3" id="5-14"></textarea></td>
+        <td><textarea name="6,14" rows="3" id="6-14"></textarea></td>
+        <td><textarea name="7,14" rows="3" id="7-14"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 15</td>
+        <td><textarea name="1,15" rows="3" id="1-15"></textarea></td>
+        <td><textarea name="2,15" rows="3" id="2-15"></textarea></td>
+        <td><textarea name="3,15" rows="3" id="3-15"></textarea></td>
+        <td><textarea name="4,15" rows="3" id="4-15"></textarea></td>
+        <td><textarea name="5,15" rows="3" id="5-15"></textarea></td>
+        <td><textarea name="6,15" rows="3" id="6-15"></textarea></td>
+        <td><textarea name="7,15" rows="3" id="7-15"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 16</td>
+        <td><textarea name="1,16" rows="3" id="1-16"></textarea></td>
+        <td><textarea name="2,16" rows="3" id="2-16"></textarea></td>
+        <td><textarea name="3,16" rows="3" id="3-16"></textarea></td>
+        <td><textarea name="4,16" rows="3" id="4-16"></textarea></td>
+        <td><textarea name="5,16" rows="3" id="5-16"></textarea></td>
+        <td><textarea name="6,16" rows="3" id="6-16"></textarea></td>
+        <td><textarea name="7,16" rows="3" id="7-16"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 17</td>
+        <td><textarea name="1,17" rows="3" id="1-17"></textarea></td>
+        <td><textarea name="2,17" rows="3" id="2-17"></textarea></td>
+        <td><textarea name="3,17" rows="3" id="3-17"></textarea></td>
+        <td><textarea name="4,17" rows="3" id="4-17"></textarea></td>
+        <td><textarea name="5,17" rows="3" id="5-17"></textarea></td>
+        <td><textarea name="6,17" rows="3" id="6-17"></textarea></td>
+        <td><textarea name="7,17" rows="3" id="7-17"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 18</td>
+        <td><textarea name="1,18" rows="3" id="1-18"></textarea></td>
+        <td><textarea name="2,18" rows="3" id="2-18"></textarea></td>
+        <td><textarea name="3,18" rows="3" id="3-18"></textarea></td>
+        <td><textarea name="4,18" rows="3" id="4-18"></textarea></td>
+        <td><textarea name="5,18" rows="3" id="5-18"></textarea></td>
+        <td><textarea name="6,18" rows="3" id="6-18"></textarea></td>
+        <td><textarea name="7,18" rows="3" id="7-18"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 19</td>
+        <td><textarea name="1,19" rows="3" id="1-19"></textarea></td>
+        <td><textarea name="2,19" rows="3" id="2-19"></textarea></td>
+        <td><textarea name="3,19" rows="3" id="3-19"></textarea></td>
+        <td><textarea name="4,19" rows="3" id="4-19"></textarea></td>
+        <td><textarea name="5,19" rows="3" id="5-19"></textarea></td>
+        <td><textarea name="6,19" rows="3" id="6-19"></textarea></td>
+        <td><textarea name="7,19" rows="3" id="7-19"></textarea></td>
+      </tr>
+
+      <tr>
+        <td>Row 20</td>
+        <td><textarea name="1,20" rows="3" id="1-20"></textarea></td>
+        <td><textarea name="2,20" rows="3" id="2-20"></textarea></td>
+        <td><textarea name="3,20" rows="3" id="3-20"></textarea></td>
+        <td><textarea name="4,20" rows="3" id="4-20"></textarea></td>
+        <td><textarea name="5,20" rows="3" id="5-20"></textarea></td>
+        <td><textarea name="6,20" rows="3" id="6-20"></textarea></td>
+        <td><textarea name="7,20" rows="3" id="7-20"></textarea></td>
+      </tr>
+
+    </table>
+  </form>
+</body>
+</html>
+
