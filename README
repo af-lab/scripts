@@ -14,3 +14,5 @@ external libraries and/or applications such as BioPerl.
   * microscopy/     - analysis of microscopy images
 
   * miscellaneous/  - things that don't fit anywhere else
+
+  * sysadmin/       - to help on keeping the system going and users happy
