@@ -12,3 +12,5 @@ external libraries and/or applications such as BioPerl.
   * cloning/        - help in cloning such as designing of genes and primers
 
   * microscopy/     - analysis of microscopy images
+
+  * miscellaneous/  - things that don't fit anywhere else
