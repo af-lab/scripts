@@ -13,3 +13,8 @@ List of scripts and their application:
                     difference between two matrixes. It was designed to find
                     regions in a cell with different intensities given two images
                     of different fluorophores.
+
+  * proprietary2tif.ijm - given a directory, will convert all images of a specific
+                          type to tif. It will also perform the same conversion
+                          for images on subdirectories. Requires the Library.txt
+                          file.
