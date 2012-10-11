@@ -39,12 +39,25 @@
 ## Options
 ################################################################################
 
-method = "mean";    ## method to filter the images (mean, median or none)
-thresh = "otsu";    ## method for automatic threshold (any used by graythresh)
+method        = "mean";     # method to filter the images (mean, median or none)
+thresh        = "otsu";     # method for automatic threshold (any used by graythresh)
+min_obj_size  = 100;        # ignore all objects found with a size smaller than xxx
+
+## octave loads all images as a big stack, whether they are different channels
+## or times. There should be only 4 necessary images (pre and after activation
+## on the control and the activation channel). In such case, the laser activation
+## would happen between frame 2 and 3. To avoid mobility of the molecules, the
+## actual activation channel would be the first image after activation (frame 3)
+## so it's pair would be frame
+frame.pre_control     = 2;
+frame.pre_activation  = 1;
+frame.post_activation = 3;
 
 ################################################################################
 ## Subfunctions
 ################################################################################
+
+pkg load image;
 
 function cleanlist = clean_filelist (filelist)
   cleanlist = {};
@@ -83,11 +96,14 @@ function img = multipage_read (filename)
   img = squeeze (img);
 endfunction
 
-function mask = getROI (pre, post)
+function mask = getROI (pre, post, method, min_size)
   diff = post - pre;
-  mask = im2bw (diff, graythresh (diff, thresh));
+  mask = im2bw (diff, graythresh (diff, method));
   mask = imopen (mask, true (3));
   ## we do not fill holes because we don't care about those locations
+  props = regionprops (mask, "Area", "PixelIdxList");
+  ## vectorized for loop through each object and removing objects smaller than...
+  mask([props([props.Area] < min_size).PixelIdxList]) = false;
 endfunction
 
 function [img] = remove_background (img)
@@ -113,7 +129,7 @@ endfunction
 
 ## find which of the options is a directory...
 options = argv ();
-files   = "";
+files   = cell;
 for i = numel (options) :-1:1
   ## FIXME: argv also returns the options used by octave some of them might have
   ## paths involved. How can we skip them? A good guess is that the last one to be
@@ -131,26 +147,44 @@ files = clean_filelist (files);
 data  = struct ();
 for i = 1:numel (files)
   [data(i).cell, data(i).bleach, data(i).dwell, data(i).power, data(i).iterations] = read_filename (files{i});
-  if (!data(i).cell), continue; endif  ## skip invalid files
+  ## skip invalid files
+  if (!data(i).cell), continue; endif
+
+  ## read images and check their size
   img = multipage_read ([dirname files{i}]);
-  for j = 1:size (img, 3);
-    img(:,:,j) = medfilt2 (img(:,:,j));
+  if (size (img, 3) < 4)
+    warning ("image `%s' does not have enough frames. Skipping...", files{i});
+    continue
+  elseif (size (img, 3) > 4)
+    warning ("image `%s' has more than 4 frames. May cause unexpected results.", files{i});
+  endif
+
+  ## filter image if so requested
+  for j = 1:4
+    switch method
+      case {"median"},  img(:,:,j) = medfilt2 (img(:,:,j));
+      case {"mean"},    img(:,:,j) = imsmooth (img(:,:,j), "average", 3);
+      case {"none"},    ## do nothing
+      otherwise,        error ("unknown method to filter image: %s", method)
+    endswitch
   endfor
+
   ## calculate ROI (activated area) from the 1st channel (should be the one that
   ## is being activated; green for PAGFP, red for mEos2
-  roi = getROI (img(:,:,1), img(:,:,3));
+  roi = getROI (img(:,:,frame.pre_activation), img(:,:,frame.post_activation), thresh, min_obj_size);
   img = remove_background (img);
 
   ## post activated by pre control (red for MaryI, green for mEos2)
-  activation = (double(img(:,:,3)) / double(img(:,:,2)))(roi);
+  activation = (double(img(:,:,frame.post_activation)) / double(img(:,:,frame.pre_control)))(roi);
   data(i).mean = mean (activation);
   data(i).std  = std (activation);
 endfor
 
-## build grid
-for iterations = 1:14
-  for power = 1:14
-    mask  = ([data.iterations] == iterations & [data.power] == power);
-    means(iterations, power) = mean ([data(mask).mean]);
-  endfor
-endfor
+## build heatmap
+## FIXME
+#for iterations = 1:14
+#  for power = 1:14
+#    mask  = ([data.iterations] == iterations & [data.power] == power);
+#    means(iterations, power) = mean ([data(mask).mean]);
+#  endfor
+#endfor
