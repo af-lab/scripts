@@ -14,7 +14,10 @@ List of scripts and their application:
                     regions in a cell with different intensities given two images
                     of different fluorophores.
 
+  * optimal-laser-settings.m - given a bunch of images with fluorophores such as
+                    PAGFP or mEos2, finds the optimal laser settings to do so.
+                    This is an Octave script.
+
   * proprietary2tif.ijm - given a directory, will convert all images of a specific
-                          type to tif. It will also perform the same conversion
-                          for images on subdirectories. Requires the Library.txt
-                          file.
+                    type to tif. It will also perform the same conversion for
+                    images on subdirectories. Requires the Library.txt file.
