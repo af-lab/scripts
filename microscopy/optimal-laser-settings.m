@@ -39,7 +39,8 @@
 ## Options
 ################################################################################
 
-method        = "mean";     # method to filter the images (mean, median or none)
+method        = "median";   # method to filter the images (mean, median or none)
+filter_size   = 3;          # size of the square for the filter
 thresh        = "otsu";     # method for automatic threshold (any used by graythresh)
 min_obj_size  = 100;        # ignore all objects found with a size smaller than xxx
 
@@ -94,16 +95,6 @@ function img = multipage_read (filename)
   ## for Octave and drop this limitation
   img = imread (filename, 1:numel (imfinfo (filename)));
   img = squeeze (img);
-endfunction
-
-function mask = getROI (pre, post, method, min_size)
-  diff = post - pre;
-  mask = im2bw (diff, graythresh (diff, method));
-  mask = imopen (mask, true (3));
-  ## we do not fill holes because we don't care about those locations
-  props = regionprops (mask, "Area", "PixelIdxList");
-  ## vectorized for loop through each object and removing objects smaller than...
-  mask([props([props.Area] < min_size).PixelIdxList]) = false;
 endfunction
 
 function [img] = remove_background (img)
@@ -161,9 +152,9 @@ for i = 1:numel (files)
 
   ## filter image if so requested
   for j = 1:4
-    switch method
-      case {"median"},  img(:,:,j) = medfilt2 (img(:,:,j));
-      case {"mean"},    img(:,:,j) = imsmooth (img(:,:,j), "average", 3);
+    switch tolower (method)
+      case {"median"},  img(:,:,j) = medfilt2 (img(:,:,j), true (filter_size));
+      case {"mean"},    img(:,:,j) = imsmooth (img(:,:,j), "average", filter_size);
       case {"none"},    ## do nothing
       otherwise,        error ("unknown method to filter image: %s", method)
     endswitch
@@ -171,7 +162,21 @@ for i = 1:numel (files)
 
   ## calculate ROI (activated area) from the 1st channel (should be the one that
   ## is being activated; green for PAGFP, red for mEos2
-  roi = getROI (img(:,:,frame.pre_activation), img(:,:,frame.post_activation), thresh, min_obj_size);
+  if (strcmpi (method, "none"))
+    pre_img   = imsmooth (img(:,:,frame.pre_activation),  "average", filter_size);
+    post_img  = imsmooth (img(:,:,frame.post_activation), "average", filter_size);
+    act_img   = post_img - pre_img;
+  else
+    act_img = img(:,:,frame.post_activation) - img(:,:,frame.pre_activation);
+  endif
+
+  roi = im2bw (act_img, graythresh (act_img, thresh));
+  roi = imopen (roi, true (3));
+  ## we do not fill holes because we don't care about those locations
+  roiprops = regionprops (roi, "Area", "PixelIdxList");
+  ## vectorized for loop through each object and removing objects smaller than...
+  roi([roiprops([roiprops.Area] < min_obj_size).PixelIdxList]) = false;
+
   img = remove_background (img);
 
   ## post activated by pre control (red for MaryI, green for mEos2)
