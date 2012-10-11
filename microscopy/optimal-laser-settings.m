@@ -1,5 +1,4 @@
 #!/usr/bin/octave -qf
-##
 ## Copyright (C) 2012 Carnë Draug <carandraug+dev@gmail.com>
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -175,6 +174,9 @@ for i = 1:numel (files)
   ## we do not fill holes because we don't care about those locations
   roiprops = regionprops (roi, "Area", "PixelIdxList");
   ## vectorized for loop through each object and removing objects smaller than...
+  ## we need to do this because PixelIdxList is a column. We need a row or octave
+  ## puts them side by side when creating indexes and complains of wrong size
+  roiprops = structfun (@transpose, roiprops, "UniformOutput", false);
   roi([roiprops([roiprops.Area] < min_obj_size).PixelIdxList]) = false;
 
   img = remove_background (img);
