@@ -132,8 +132,9 @@ for i = numel (options) :-1:1
   endif
 endfor
 if (isempty (files)), error ("No directory to search for images...\n"); endif
-
 files = clean_filelist (files);
+if (isempty (files)), error ("No supported images found...\n"); endif
+
 data  = struct ();
 for i = 1:numel (files)
   [data(i).cell, data(i).bleach, data(i).dwell, data(i).power, data(i).iterations] = read_filename (files{i});
@@ -181,12 +182,20 @@ for i = 1:numel (files)
 
   img = remove_background (img);
 
+  ## must remove pixels with values at the max value of the class and zero
+  roi(img(:,:,frame.post_activation) == 0                     |
+      img(:,:,frame.pre_activation)  == 0                     |
+      img(:,:,frame.pre_activation)  == intmax (class (img))  |
+      img(:,:,frame.post_activation) == intmax (class (img)) )  = false;
+
   ## post activated by pre control (red for MaryI, green for mEos2)
-  activation = (double(img(:,:,frame.post_activation)) / double(img(:,:,frame.pre_control)))(roi);
+  activation = (double(img(:,:,frame.post_activation)) ./ double(img(:,:,frame.pre_control)))(roi);
   data(i).mean = mean (activation);
   data(i).std  = std (activation);
 endfor
 
+printf ("Power\tIter\tMean\t\tStdDev\n", [data.power; data.iterations; data.mean; data.std]);
+printf ("%d\t%d\t%1.5f  \t%1.3f\n", [data.power; data.iterations; data.mean; data.std]);
 ## build heatmap
 ## FIXME
 #for iterations = 1:14
