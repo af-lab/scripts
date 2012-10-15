@@ -193,7 +193,8 @@ for i = 1:numel (files)
   data(i).mean = mean (activation);
   data(i).std  = std (activation);
 endfor
-
+## FIXME when we skip analysis, some elements from stuct array will be empty and
+## this will fail...
 printf ("Power\tIter\tMean\t\tStdDev\n", [data.power; data.iterations; data.mean; data.std]);
 printf ("%d\t%d\t%1.5f  \t%1.3f\n", [data.power; data.iterations; data.mean; data.std]);
 ## build heatmap
