@@ -89,13 +89,6 @@ function [cell, bleach, dwell, power, iterations] = read_filename (filename)
   endif
 endfunction
 
-function img = multipage_read (filename)
-  ## FIXME the code only deals with tif files... should port the OMERO toolbox
-  ## for Octave and drop this limitation
-  img = imread (filename, 1:numel (imfinfo (filename)));
-  img = squeeze (img);
-endfunction
-
 function [img] = remove_background (img)
   ## Make convolution matrix (square of size 10)
   bg_size = 10;
@@ -142,7 +135,7 @@ for i = 1:numel (files)
   if (!data(i).cell), continue; endif
 
   ## read images and check their size
-  img = multipage_read ([dirname files{i}]);
+  img = squeeze (imread_multipage ([dirname files{i}]));
   if (size (img, 3) < 4)
     warning ("image `%s' does not have enough frames. Skipping...", files{i});
     continue
