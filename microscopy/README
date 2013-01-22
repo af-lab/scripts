@@ -25,3 +25,7 @@ List of scripts and their application:
   * proprietary2tif.ijm - given a directory, will convert all images of a specific
                     type to tif. It will also perform the same conversion for
                     images on subdirectories. Requires the Library.txt file.
+
+  * stack2hyperstack.m - Octave function to rearrange a multi-dimensional image,
+                    similar to ImageJ's stack2hyperstack command. Makes it easier
+                    to index the image for the rest of the code.
