@@ -29,3 +29,7 @@ List of scripts and their application:
   * stack2hyperstack.m - Octave function to rearrange a multi-dimensional image,
                     similar to ImageJ's stack2hyperstack command. Makes it easier
                     to index the image for the rest of the code.
+
+  * Zproject.m    - makes a Z projection of a multi-dimensional image, similar
+                    to the ImageJ command. Different types of projections are
+                    supported.
