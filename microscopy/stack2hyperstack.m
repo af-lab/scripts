@@ -54,6 +54,8 @@ function img = stack2hyperstack (img, vec_size, in = "cztp", out = in)
     error ("stack2hyperstack: order of images must be a string");
   elseif (any (regexpi ([in out], "[^cztp]")))
     error ("stack2hyperstack: only the characters c, z, t and p are allowed.");
+  elseif (numel (vec_size) != numel (in))
+    error ("stack2hyperstack: SIZE and IN must have the same length.");
   endif
 
   img = reshape (img, [rows(img) columns(img) vec_size]);
