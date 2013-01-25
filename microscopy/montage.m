@@ -32,29 +32,53 @@
 ## images and a 3 by 3 montage is requested, the last image (the 10th) will not
 ## appear on the montage.
 ##
-## Using @code{cat} and indexing, allows for the display of different images in
-## the same montage, or skip some of the images in @var{img}. For example:
+## The optional return value @var{h} is a graphics handle to the created image.
+##
+## Using @code{cat}, @code{reshape}, @code{permute} and smart indexing, allows
+## for the display of different images in the same montage, or skip some of the images in
+## @var{img}. For example:
 ##
 ## @example
 ## @group
 ## montage (img(:,:,1:3:end))  # only display each third image
 ## @end group
+## @end example
 ##
+## Displaying 2 images on the same montage, each on its row:
+## @example
 ## @group
-## ## display the grayscale img1 and img2 on a montage with 2
-## ## columns (img1 on the top column and img2 on the bottom)
 ## montage (cat (3, img1, img2), [2 size(img1, 3)])
-##
 ## montage (cat (4, img1, img2), [2 size(img1, 4)])  # same for RGB images
-##
-## ## display img1 and img2 in two columns, a column for each
-## montage (cat (3, img1(:,:,1:2:end), img2(:,:,1:2:end),
-##                  img1(:,:,2:2:end), img2(:,:,2:2:end)),
-##          [size(img1, 3), 2])
 ## @end group
 ## @end example
 ##
-## The optional return value @var{h} is a graphics handle to the created image.
+## If each image should be displayed on its column, instead, some reshaping is
+## necessary to interlace the 2 images.  Following the previous example:
+##
+## @example
+## @group
+## ## grayscale images (each 512x512x5)
+## img = permute (cat (4, img1, img2), [1 2 4 3])
+## montage (reshape (img, [512 512 10]), [5 2])
+## ## RGB images (each 512x512x3x5)
+## img = permute (cat (5, img1, img2), [1 2 3 5 4])
+## montage (reshape (img, [512 512 3 10]), [5 2])
+## @end group
+## @end example
+##
+## An example a bit more complicated.  A grayscale image, 512x512 pixels,
+## 2 channels, 10 time points and 7 Z-slices.
+## @example
+## @group
+## size (img)
+## @result{} 512  512    1    2   10   7
+## ## montage with one column per time point
+## montage (reshape (img(:,:,:,1,:,:), [512 512 7*10]), [10 7])
+## ## montage with 1 row per time point (permute first)
+## img = permute (img, [1 2 3 5 4]);
+## montage (reshape (img(:,:,:,1,:,:), [512 512 7*10]), [7 10])
+## @end group
+## @end example
 ##
 ## @seealso{image, imshow, subplot}
 ## @end deftypefn
