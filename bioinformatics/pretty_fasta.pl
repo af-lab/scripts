@@ -22,6 +22,10 @@ use File::Spec;                 # Perform operation on file names
 use Bio::SeqIO;                 # Handler for SeqIO Formats
 use POSIX qw/ceil/;             # round up function
 
+## XXX as of 2013/02/05 I have incorporated the block method in bioperl-live
+## which would make writing this code much simpler. See
+## See https://github.com/bioperl/bioperl-live/issues/51
+
 =head1 NAME
 
 pretty_fasta - makes a fasta sequence prettier and easier to read

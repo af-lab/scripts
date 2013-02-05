@@ -5,5 +5,6 @@ List of scripts and their application:
                         for 10aa spaces with >7 [GS] (for hypothetical hinges)
 
   * pretty_fasta      - saves sequence in a fasta format with controlled whitespace
-                        for ease of read and count
+                        for ease of read and count. This has later been incorporated
+                        into bioperl as Bio::SeqIO::fasta options.
 
