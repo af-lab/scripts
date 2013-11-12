@@ -14,10 +14,6 @@ List of scripts and their application:
                     regions in a cell with different intensities given two images
                     of different fluorophores.
 
-  * imread_multipage.m - an Octave function to read multipage TIFFs. While this is
-                    a single line, it is repeated many times in the other functions
-                    here.
-
   * optimal-laser-settings.m - given a bunch of images with fluorophores such as
                     PAGFP or mEos2, finds the optimal laser settings to do so.
                     This is an Octave script.

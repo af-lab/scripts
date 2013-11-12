@@ -135,7 +135,7 @@ for i = 1:numel (files)
   if (!data(i).cell), continue; endif
 
   ## read images and check their size
-  img = squeeze (imread_multipage ([dirname files{i}]));
+  img = squeeze (imread ([dirname files{i}], "Index", "all"));
   if (size (img, 3) < 4)
     warning ("image `%s' does not have enough frames. Skipping...", files{i});
     continue
