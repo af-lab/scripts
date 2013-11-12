@@ -18,9 +18,6 @@ List of scripts and their application:
                     a single line, it is repeated many times in the other functions
                     here.
 
-  * montage.m     - displays a montage of a multi-dimensional image, similar to
-                    ImageJ's "Make montage" command.
-
   * optimal-laser-settings.m - given a bunch of images with fluorophores such as
                     PAGFP or mEos2, finds the optimal laser settings to do so.
                     This is an Octave script.
