@@ -1,5 +1,10 @@
 List of scripts and their application:
 
+  * ccri.m        - Compute Correlation Coefficient of Raw Images as described
+                    in "Demandolx, D. and Davoust, J. (1997), Multicolour
+                    analysis and local image correlation in confocal microscopy.
+                    Journal of Microscopy, 185: 21-36."
+
   * draw.ijm      - make useful drawings on the image, non-destructive, with
                     overlays.
 
@@ -13,6 +18,11 @@ List of scripts and their application:
                     difference between two matrixes. It was designed to find
                     regions in a cell with different intensities given two images
                     of different fluorophores.
+
+  * jmsi.m        - Compute Joint Moment of Standardized Images as described
+                    in "Demandolx, D. and Davoust, J. (1997), Multicolour
+                    analysis and local image correlation in confocal microscopy.
+                    Journal of Microscopy, 185: 21-36."
 
   * optimal-laser-settings.m - given a bunch of images with fluorophores such as
                     PAGFP or mEos2, finds the optimal laser settings to do so.
