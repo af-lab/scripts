@@ -20,6 +20,8 @@ use warnings;                   # Replacement for the -w flag, but lexically sco
 use Bio::Seq;                   # Sequence object, with features
 use Bio::SeqIO;                 # Handler for SeqIO formats
 use Bio::Tools::Run::StandAloneBlastPlus;
+use Bio::DB::EUtilities;
+use List::Util qw(max min);
 
 ## Search for histone genes in a sequence file (an entire chromosome perhaps)
 ## via blast, and report the coordinates of possible histone genes by order.
@@ -29,19 +31,16 @@ use Bio::Tools::Run::StandAloneBlastPlus;
 ##
 ## Example output:
 ##
-##    Histone   Chromosome  Strand    Start      End      Distance
-##    ------------------------------------------------------------
-##    h2b      NC_006088.3    -       47928729  47929106      3714
-##    h4       NC_006088.3    +       47932425  47932733      3319
-##    h3       NC_006088.3    -       47933732  47934139       999
-##    h3       NC_006088.3    +       47934973  47935380       834
-##    h4       NC_006088.3    -       47936174  47936482       794
-##    h2a      NC_006088.3    -       47943848  47944219      7366
-##    h2b      NC_006088.3    +       47944568  47944945       349
-##    h3       NC_006088.3    +       47946160  47946567      1215
-##    h4       NC_006088.3    -       47953881  47954189      7314
-##    h2a      NC_006088.3    -       47958623  47959009      4434
-##    h2b      NC_006088.3    +       47959343  47959720       334
+##    Histone Chromosome   Strand     Start        End  Stem   Distance    Gene
+##    type                                              loop               symbol
+##    --------------------------------------------------------------------------------
+##    h4      NC_006088.3     +    47932425   47932737    41       3319  HIST1H46L1
+##    h3      NC_006088.3     -    47933728   47934139    31        991  LOC769809
+##    h3      NC_006088.3     +    47934973   47935384    31        834  LOC769852
+##    h4      NC_006088.3     -    47936170   47936482    41        786  LOC769852
+##    h2a     NC_006088.3     -    47943829   47944219    25       7347  LOC769852
+##    h2b     NC_006088.3     +    47944568   47944949    32        349  LOC769852
+##    h3      NC_006088.3     +    47946160   47946571    40       1211  LOC769852
 ##
 ##
 ## XXX
@@ -50,9 +49,9 @@ use Bio::Tools::Run::StandAloneBlastPlus;
 ##    Small adjustments may be required if this is to change.
 ##
 ## TODO
-##  * all the code assumes that the matches do not overlap. Since we are
+##  * most of the code assumes that the matches do not overlap. Since we are
 ##    dealing with histone genes, this is safe assumption, but will require
-##    fixing if to be used in other cases
+##    some second look at the code if to be used in other cases
 
 ## Tuning for what is a good match
 my $min_pid = 90;  # minimum required value of percent identity
@@ -63,8 +62,11 @@ my $db_data = "gga_ref_Gallus_gallus-4.0_chr1.fa";
 ## name given to the constructed database
 my $db_name = "gallus_gallus_chr1";
 
+## Email to send to the NCBI servers when retrieving current annotations
+my $email = 'david.pinto@nuigalway.ie';
+
 ## regexp for stem loop (according to PMID:17531405)
-our $stlp_seq       = 'GG[CT][CT]CTT[CT]T[CTA]AG[GA]GCC';
+our $stlp_seq = 'GG[CT][CT]CTT[CT]T[CTA]AG[GA]GCC';
 
 ## the most common core histone sequences present in the human genome
 ## as found by our own human histone catalogue
@@ -195,6 +197,8 @@ my $strand;   # string + or -
 my $start;    # coordinates in the subject where the HSP starts
 my $end;      # coordinates in the subject where the HSP ends
 my $dist;     # distance between the beginning of a HSP and the end of the last HSP
+my $stm_lp;   # distance from the end of the CDS until the start of the stem-loop
+my $symbol;   # if the gene is already annotated, its current name
 my $seq_ln;   # length of the histone sequence (length of the entire query)
 my $length;   # total length of HSP
 my $pid;      # percentage identity of the HSP
@@ -204,18 +208,28 @@ my $pid;      # percentage identity of the HSP
 ##
 
 format CLUSTER_TOP =
-Histone   Chromosome  Strand    Start      End      Distance
-------------------------------------------------------------
+Histone Chromosome   Strand     Start        End  Stem   Distance    Gene
+type                                              loop               symbol
+--------------------------------------------------------------------------------
 .
 format CLUSTER =
-@<<<<<@>>>>>>>>>>>>>@|||||||||@#########@#########@#########
-$histone, $chr,       $strand,    $start,     $end,    $dist
+@<<<    @<<<<<<<<<<<    @  @######### @#########  @>>> @#########  @<<<<<<<<<<<<
+$histone, $chr,  $strand,   $start,     $end, $stm_lp, $dist, $symbol
 .
 
 $^ = 'CLUSTER_TOP';
 $~ = 'CLUSTER';
-$= = 60;  # set page to 60 characters wide
+$= = 80;  # set page to 60 characters wide
 $- = 0;   # print header again
+
+## set up fetcher for current sequence with annotations
+my $fetcher = Bio::DB::EUtilities->new(
+  -eutil    => 'efetch',
+  -db       => 'nucleotide',
+  -retmode  => 'text',
+  -rettype  => 'gb',
+  -email    => $email,
+);
 
 ## set end of the last HSP to the start of the first HSP
 my $last_end = $good[0]->[2]->start('subject');
@@ -228,12 +242,69 @@ foreach my $set (@good) {
   $start   = $hsp->start('subject');
   $end     = $hsp->end('subject');
 
+
+  ## Check if this gene is already annotated and find its current gene symbol
+  {
+    $fetcher->set_parameters (
+      -id         => $chr,
+      -seq_start  => $start,
+      -seq_stop   => $end,
+      -strand     => $hsp->strand('subject') > 0 ? 1 : 2,
+    );
+    my $seq_fh  = fh_content  ($fetcher);
+    my $hsp_seq = seq_from_fh ($seq_fh);
+    close ($seq_fh);
+
+    $symbol = "none";
+    foreach my $feat ($hsp_seq->get_SeqFeatures) {
+      next unless $feat->primary_tag eq "gene";
+      $symbol = ($feat->get_tag_values("gene"))[0];
+      last;
+    }
+  }
+
+  ## Get the genomic sequence with some 3' extra sequence. This allows to
+  ## identify the real limits of the CDS (the HSP not always includes the
+  ## sequence for the whole protein), and also to find the stem loop.
+  {
+    if ($strand eq "+") {
+      $fetcher->set_parameters (-seq_stop  => $end   +150);
+    } else {
+      $fetcher->set_parameters (-seq_start => $start -150);
+    }
+    my $seq_fh  = fh_content  ($fetcher);
+    my $hsp_seq = seq_from_fh ($seq_fh);
+    close ($seq_fh);
+
+    my $prot = $hsp_seq->translate(
+      -throw => 1, # die if it can't find a CDS
+    );
+    my $cds_length = (index ($prot->seq, "*") +1) * 3;
+
+    ## fix limits the real end of CDS in the genomic coordinates
+    if ($strand eq "+") {
+      $end = $start + $cds_length;
+    } else {
+      $start = $end - $cds_length;
+    }
+
+    ## get the 3' UTR sequence to look for the stem loop
+    my $utr3 = $hsp_seq->subseq ($cds_length +1, length ($hsp_seq->seq));
+
+    $stm_lp = "none";
+    if ($utr3 =~ m/($stlp_seq)/gi) {
+      $stm_lp = pos ($utr3) - length ($1) +1; # start of *last* match
+    }
+  }
+
   ## distance between the end of the last match and
   ## the start of this one
-  $dist = $start - $last_end;
+  $dist = min ($start, $end) - $last_end;
 
   write;
-  $last_end = $end;
+
+  ## calculate for the next iteration
+  $last_end = max ($start, $end);
 }
 
 
@@ -257,7 +328,7 @@ $histone, $seq_ln, $length,   $start,       $end,       $pid
 
 $^ = 'BADMATCH_TOP';
 $~ = 'BADMATCH';
-$= = 60;  # set page to 80 characters wide
+$= = 80;  # set page to 80 characters wide
 $- = 0;   # print header again
 
 foreach my $set (@bad) {
@@ -273,3 +344,20 @@ foreach my $set (@bad) {
   write;
 }
 
+
+## this is a separate sub from the one that actually gets
+## the Bio::Seq object, so we can later close the filehandle
+sub fh_content {
+  my $fetcher = shift;
+  open(my $fh, "<", \$fetcher->get_Response->content)
+    or die "Could not open response content string for reading: $!";
+  return $fh;
+}
+sub seq_from_fh {
+  my $fh = shift;
+  my $seq = Bio::SeqIO->new(
+    -fh      => $fh,
+    -format  => "genbank",
+  )->next_seq();
+  return $seq;
+}
