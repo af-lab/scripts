@@ -17,9 +17,22 @@
 ## @deftypefn {Function File} {} jmsi (@var{x}, @var{y})
 ## Compute Joint Moment of Standardized Images.
 ##
-## As described in @cite{Demandolx, D. and Davoust, J. (1997), Multicolour
+## Each pixel value in the output image express a local correlation value
+## as described in @cite{Demandolx, D. and Davoust, J. (1997), Multicolour
 ## analysis and local image correlation in confocal microscopy. Journal of
 ## Microscopy, 185: 21-36. doi: 10.1046/j.1365-2818.1997.1470704.x}.
+##
+## Applies a statistical differencing (Pratt, 1991) to locally
+## standardize the mean  and the variance in the images.  The
+## standardized images  are then compared by the calculation of
+## their local second-order joint moment (Anderson, 1984). The statistical 
+## differencing of images allows the generation of locally 
+## standardized images successively by subtracting the locally 
+## averaged image from the raw image and dividing the result by
+## the standard deviation image of the image.
+##
+## The JMSI values are not necessarily between -1 and 1 but
+## are usually in this range.
 ##
 ## @seealso{ccri}
 ## @end deftypefn

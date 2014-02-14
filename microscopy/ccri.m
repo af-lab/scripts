@@ -17,9 +17,20 @@
 ## @deftypefn {Function File} {} ccri (@var{x}, @var{y})
 ## Compute Correlation Coefficient of Raw Images.
 ##
-## As described in @cite{Demandolx, D. and Davoust, J. (1997), Multicolour
+## Each pixel value in the output image express a local correlation value
+## as described in @cite{Demandolx, D. and Davoust, J. (1997), Multicolour
 ## analysis and local image correlation in confocal microscopy. Journal of
 ## Microscopy, 185: 21-36. doi: 10.1046/j.1365-2818.1997.1470704.x}.
+##
+## Considering a local area of interest in the pair of
+## fluorescence micrographs, the correlation coefficient estimates
+## the linear dependencies between the two pixel value
+## distributions independently of background fluorescence
+## levels.  The correlation coefficient of raw images (CCRI),
+## is computed on sliding windows across the whole image field,
+## i.e. for each pixel neighbourhood, to produce a complete image correlation
+## map. All means on local windows are computed using a
+## Gaussian low-pass filter.
 ##
 ## @seealso{ccri}
 ## @end deftypefn
