@@ -29,6 +29,12 @@ use List::Util qw(max min);
 ## the cluster organization for comparison against others, and looking for
 ## orthologs.
 ##
+## A separate report is printed with the HSPs deemed "bad", and some notes
+## about it. The word "gaps", means that by expanding the assembly is not
+## complete in that region and some "N" were found adjacent to the it. If
+## a gene and protein are already annotated in that region, their names will
+## also be printed.
+##
 ## Example output:
 ##
 ##    Histone Chromosome   Strand     Start        End  Stem   Distance    Gene
@@ -42,6 +48,14 @@ use List::Util qw(max min);
 ##    h2b     NC_006088.3     +    47944568   47944949    32        349  LOC769852
 ##    h3      NC_006088.3     +    47946160   47946571    40       1211  LOC769852
 ##
+##                         Bad matches
+##
+##    Histone %query  Subject   Subject      %  Notes
+##    type   covered    start       end     id
+##    --------------------------------------------------------------------------------
+##    h2a      0.39  75871788  75871940  54.90  none
+##    h2a      0.49  75871940  75872131  31.25  none
+##    h2b      0.53  47953121  47953321  91.04  gaps,LOC101752019,histone H4 type VIII
 ##
 ## XXX
 ##  * we know in advance that we were only searching for sequences in a single
