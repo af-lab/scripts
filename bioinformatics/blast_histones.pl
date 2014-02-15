@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-## Copyright (C) 2013 Carnë Draug <carandraug+dev@gmail.com>
+## Copyright (C) 2014 Carnë Draug <carandraug+dev@gmail.com>
 ##
 ## This program is free software; you can redistribute it and/or modify
 ## it under the terms of the GNU General Public License as published by
@@ -161,7 +161,7 @@ while (my ($histone, $seq) = each %common) {
     $bad = 1;
 
     next if ($hsp->percent_identity < $min_pid);
-    next if ($hsp->length('total') < length ($seq) * $min_pln);
+    next if ($hsp->length('total') < (length ($seq) * $min_pln));
 
     ## Check the pair starts at the beginning of the protein.
     ##
@@ -199,17 +199,17 @@ my $end;      # coordinates in the subject where the HSP ends
 my $dist;     # distance between the beginning of a HSP and the end of the last HSP
 my $stm_lp;   # distance from the end of the CDS until the start of the stem-loop
 my $symbol;   # if the gene is already annotated, its current name
-my $seq_ln;   # length of the histone sequence (length of the entire query)
-my $length;   # total length of HSP
+my $p_cov;    # precentage of the query that the HSP covers
 my $pid;      # percentage identity of the HSP
+my $note;     # some note to take into account about why is it being excluded
 
 ##
 ## Print report for the cluster organization
 ##
 
 format CLUSTER_TOP =
-Histone Chromosome   Strand     Start        End  Stem   Distance    Gene
-type                                              loop               symbol
+Histone Chromosome   Strand     Start        End  Stem    Distance    Gene
+type    accession                                 loop  to previous   symbol
 --------------------------------------------------------------------------------
 .
 format CLUSTER =
@@ -251,16 +251,8 @@ foreach my $set (@good) {
       -seq_stop   => $end,
       -strand     => $hsp->strand('subject') > 0 ? 1 : 2,
     );
-    my $seq_fh  = fh_content  ($fetcher);
-    my $hsp_seq = seq_from_fh ($seq_fh);
-    close ($seq_fh);
-
-    $symbol = "none";
-    foreach my $feat ($hsp_seq->get_SeqFeatures) {
-      next unless $feat->primary_tag eq "gene";
-      $symbol = ($feat->get_tag_values("gene"))[0];
-      last;
-    }
+    my $hsp_seq = fetch_seq ($fetcher);
+    $symbol = find_gene ($hsp_seq) || "none";
   }
 
   ## Get the genomic sequence with some 3' extra sequence. This allows to
@@ -272,9 +264,7 @@ foreach my $set (@good) {
     } else {
       $fetcher->set_parameters (-seq_start => $start -150);
     }
-    my $seq_fh  = fh_content  ($fetcher);
-    my $hsp_seq = seq_from_fh ($seq_fh);
-    close ($seq_fh);
+    my $hsp_seq = fetch_seq ($fetcher);
 
     my $prot = $hsp_seq->translate(
       -throw => 1, # die if it can't find a CDS
@@ -316,14 +306,14 @@ format BADMATCH_TOP =
 
                      Bad matches
 
-Histone    Query     HSP     Subject     Subject  Percentage
-          length  length       start         end    identity
-------------------------------------------------------------
+Histone %query  Subject   Subject      %  Notes
+type   covered    start       end     id
+--------------------------------------------------------------------------------
 .
 
 format BADMATCH =
-@<<<<<<<@#######@#######@###########@###########  @##.######
-$histone, $seq_ln, $length,   $start,       $end,       $pid
+@<<<<< @##.## @######## @######## @##.##  @<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+$histone, $p_cov, $start,    $end,   $pid, $note
 .
 
 $^ = 'BADMATCH_TOP';
@@ -335,29 +325,91 @@ foreach my $set (@bad) {
   $histone = $set->[0];
   $chr     = $set->[1];
   my $hsp  = $set->[2];
-  $seq_ln  = length ($common{$histone});
 
-  $length = $hsp->length('total');
+  $p_cov  = $hsp->length('total') / length ($common{$histone});
+
   $start  = $hsp->start('subject');
   $end    = $hsp->end('subject');
   $pid    = $hsp->percent_identity();
+
+  my @notes;
+
+  ## We may have an incomplete match because there's gaps in the sequence.
+  ## So we check the 20bp upstream and downstream of the HSP, and see if
+  ## we identify gaps in the sequence (N). If so, take note of it.
+  {
+    $fetcher->set_parameters (
+      -id         => $chr,
+      -seq_start  => $start -20,
+      -seq_stop   => $end   +20,
+      -strand     => $hsp->strand('subject') > 0 ? 1 : 2,
+    );
+
+    my $hsp_seq = fetch_seq ($fetcher);
+    push (@notes, "gaps") if ($hsp_seq->seq =~ m/N/i);
+  }
+
+  ## There may already be another gene annotated here
+  {
+    $fetcher->set_parameters (
+      -id         => $chr,
+      -seq_start  => $start,
+      -seq_stop   => $end,
+      -strand     => $hsp->strand('subject') > 0 ? 1 : 2,
+    );
+    my $hsp_seq = fetch_seq ($fetcher);
+
+    $symbol = find_gene ($hsp_seq);
+    push (@notes, "$symbol") if $symbol;
+
+    my $product = find_product ($hsp_seq);
+    push (@notes, "$product") if $product;
+  }
+
+  ## concatenate the notes
+  $note = join (",", @notes) || "none";
+
   write;
 }
 
 
-## this is a separate sub from the one that actually gets
-## the Bio::Seq object, so we can later close the filehandle
-sub fh_content {
+## takes fetcher from Bio::DB::EUtilities, fetches the first sequence,
+## and returns a Bio::Seq object without any temporary file
+sub fetch_seq {
   my $fetcher = shift;
   open(my $fh, "<", \$fetcher->get_Response->content)
     or die "Could not open response content string for reading: $!";
-  return $fh;
-}
-sub seq_from_fh {
-  my $fh = shift;
   my $seq = Bio::SeqIO->new(
     -fh      => $fh,
     -format  => "genbank",
   )->next_seq();
+  close ($fh);
   return $seq;
 }
+
+## finds on the sequence features, for a gene name. Returns empty
+## string if nothing is found
+sub find_gene {
+  my $hsp_seq = shift;
+  my $symbol;
+  foreach my $feat ($hsp_seq->get_SeqFeatures) {
+    next unless $feat->primary_tag eq "gene";
+    $symbol = ($feat->get_tag_values("gene"))[0];
+    last;
+  }
+  return $symbol;
+}
+
+## finds on the sequence features, for the name of a product. Returns empty
+## string if nothing is found
+sub find_product {
+  my $hsp_seq = shift;
+  my $symbol;
+  foreach my $feat ($hsp_seq->get_SeqFeatures) {
+    next unless $feat->primary_tag eq "CDS" || $feat->primary_tag eq "mRNA";
+    $symbol = ($feat->get_tag_values("product"))[0];
+    last if $symbol;
+  }
+  return $symbol;
+}
+
