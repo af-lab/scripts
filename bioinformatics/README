@@ -13,3 +13,6 @@ List of scripts and their application:
                         for ease of read and count. This has later been incorporated
                         into bioperl as Bio::SeqIO::fasta options.
 
+  * short2shorter     - convert protein sequence in the 3 letter amino code,
+                        into the 1 letter, IUPAC code.
+
