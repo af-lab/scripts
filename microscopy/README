@@ -1,5 +1,12 @@
 List of scripts and their application:
 
+  * CropReg.m     - track an object in a time-series grayscale image by finding
+                    the best correlation coefficient between the object on the
+                    previous frame, and the current frame. To avoid issued with
+                    multiple similar objects, limits to a region around the
+                    previous location of the object. Requires user interaction
+                    on the first frame, to select a bounding box for the object.
+
   * ccri.m        - Compute Correlation Coefficient of Raw Images as described
                     in "Demandolx, D. and Davoust, J. (1997), Multicolour
                     analysis and local image correlation in confocal microscopy.
