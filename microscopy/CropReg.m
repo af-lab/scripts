@@ -1,4 +1,4 @@
-#!/usr/bin/octave -qf
+#!/usr/local/bin/octave -qf
 ## Copyright (C) 2010, 2012, 2014 Carnë Draug <carandraug+dev@gmail.com>
 ##
 ## This program is free software; you can redistribute it and/or modify
@@ -16,7 +16,7 @@
 
 pkg load image; # we need this for imcrop and normxcorr2
 pkg_desc = pkg ("describe", "image");
-if (! compare_versions (pkg_desc{1}.version, "2.2.1", ">="))
+if (! compare_versions (pkg_desc{1}.version, "2.2.0", ">="))
   ## for imcrop to return the second output argument
   error ("Octave Forge image package version 2.2.1 or later is required");
 endif
@@ -50,8 +50,8 @@ endif
 ## Value of 0.2 searches in area 20% larger than template
 opt.ratio = 0.2;
 
-## Limit tracking to these many frames
-opt.nFrames = 100;
+## Limit tracking to these many frames (set to zero to use all)
+opt.nFrames = 0;
 
 ################################################################################
 ## crop_reg - the function which actually does everything
@@ -106,8 +106,9 @@ function seed = crop_reg (img, seed, rect, ratio)
     csr = vsearch(1) : vsearch(1)+vsearch(3)-1;
     rsr = vsearch(2) : vsearch(2)+vsearch(4)-1;
     xc2 = normxcorr2 (seed(:,:,frame-1), img(rsr,csr,frame));
-    ## what if we what about get all "best hits" and choose the middle one?
-    [m, n] = find (xc2 == max (xc2(:)), 1, "first");
+
+    [~, max_idx] = max (xc2(:));
+    [m, n] = ind2sub (size (xc2), max_idx);
 
     ## recalculate the initial x and y coordinates for the seed
     vseed(1) = vsearch(1) + n - vseed(3);
@@ -133,15 +134,18 @@ endfunction
 for file_idx = 1:numel (argv ())
   fpath = argv (){file_idx};
 
-  img = imread (fpath, "Index", "all");
-  if (size (img, 4) < opt.nFrames)
-    error ("CropReg: note enough frames in image (%d) for requested number (%d)"
-           size (img, 4), opt.nFrames);
+  if (opt.nFrames == 0)
+    opt.nFrames = "all";
+  else
+    opt.nFrames = 1:opt.nFrames;
   endif
+  img = imread (fpath, "Index", opt.nFrames);
 
   printf (["Select ROI to track from frame #1\n" ...
            "(first click in top left corner; second click in bottom right corner.)\n"]);
-  [seed, rect] = imcrop (img(:,:,:,1:opt.nFrames));
+  [~, rect] = imcrop (imadjust (im2double (img(:,:,:,1))));
+
+  [seed, rect] = imcrop (img(:,:,:,1), rect);
 
   tracked = crop_reg (img, seed, rect, opt.ratio);
 
