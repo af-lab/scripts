@@ -14,9 +14,9 @@
 ## You should have received a copy of the GNU General Public License
 ## along with this program; if not, see <http://www.gnu.org/licenses/>.
 
-pkg load image;
-pkg load statistics;
-pkg load imagej;
+pkg load image; # at least version 2.5.1
+pkg load statistics; # including cset 740cc587a4c0 (release after 1.2.4)
+pkg load imagej; # https://bitbucket.org/carandraug/octave-imagej
 
 graphics_toolkit ("qt");
 set (0, "defaultfigurevisible", "off");
@@ -168,10 +168,10 @@ endfunction
 ##    msg (char[]) - a message if status was true.
 function [status, msg] = check_cell_values (vals)
   status = true;
-  if (any (vals >= 1))
-    msg = "channel is saturated";
+  if (any (vals >= 0.95))
+    msg = "channel saturated";
   elseif (iqr (vals) < 0.05)
-    msg = "channel iqr less than 0.05";
+    msg = "iqr less than 0.05";
   else
     status = false;
     msg = "";
@@ -200,9 +200,65 @@ function status = imhist_channel (vals, channel_name)
   xlabel ([channel_name " raw intensity"]);
   [status, msg] = check_cell_values (vals);
   if (status)
-    text ("string", msg, "units", "normalized", "position", [0.5 0.5],
-          "HorizontalAlignment", "center", "VerticalAlignment", "middle");
+    text ("String", msg, "Units", "normalized", "Position", [0.5 0.5],
+          "HorizontalAlignment", "center", "VerticalAlignment", "middle",
+          "FontSize", 20, "FontWeight", "bold", "Color", [1 0 0]);
   endif
+endfunction
+
+## Plot density plot, useful for dense scatter plots, similar to FACS
+## density plots.
+##
+## We use the jet() colormap so we can easily distinguish low values
+## on white background.
+function scatter_density (x, y, xl, yl, x_ctrs, y_ctrs)
+  data = hist3 ([y(:) x(:)], {y_ctrs, x_ctrs});
+  ## We use subimage because a figure can only have a single colormap.
+  ## And we can't have a colorbar since those are dependent on the
+  ## colormap being used and we use colormaps of different lengths each
+  ## time (well, technically it is possible but only with some terribly
+  ## ugly hacks).  We +1 the data because indexed images of floating
+  ## class are index base 1.
+  subimage ([x_ctrs(1) x_ctrs(end)], [y_ctrs(1) y_ctrs(end)],
+            data +1, [1 1 1; jet(max (data(:)))]);
+  axis ("xy");
+  set (gca (),
+    "Box", "off",
+    "Tickdir", "out"
+  );
+  xlabel (xl);
+  ylabel (yl);
+endfunction
+
+## scatter_density when both x-y are in the [0 1] range.
+function scatter_image_density (x, y, xl, yl)
+  nbins = 100;
+  ctrs = linspace (0, 1, nbins);
+  scatter_density (x, y, xl, yl, ctrs, ctrs);
+  axis ("equal");
+endfunction
+
+## scatter_density when both only x is in the [0 1] range.
+function scatter_ratio_density (x, y, xl, yl)
+  nbins = 100;
+  x_ctrs = linspace (0, 1, nbins);
+  y_ctrs = linspace (min (y), max (y), nbins);
+  scatter_density (x, y, xl, yl, x_ctrs, y_ctrs);
+endfunction
+
+## Plot linear regression and compute Pearson's correlation coefficient.
+function add_fit_plot_and_pcc (x, y)
+  hold on;
+  [fits] = polyfit (x, y, 1);
+  x_p  = linspace (xlim ()(1), xlim () (2), 1000);
+  regr = fits(1) * x_p + fits(2);
+  plot (x_p, regr, "r-");
+
+  xm = x - mean (x);
+  ym = y - mean (y);
+  pcc = sum (xm .* ym) / sqrt (sumsq (xm) * sumsq (ym));
+  title (sprintf ("slope = %.2f; PCC = %.2f", fits(1), pcc));
+  hold off;
 endfunction
 
 
@@ -218,7 +274,6 @@ function main (argv)
   cam_depth = 14;
   bit_max = (2.^cam_depth)-1;
 
-
   for file_idx = 1:numel (filenames)
     fpath = filenames{file_idx};
     [fdir, fname] = fileparts (fpath);
@@ -228,6 +283,7 @@ function main (argv)
       [dapi, h2ax, h2b] = read_image (fpath);
     catch
       warning ("%s.  Skipping...", lasterr ());
+      continue;
     end_try_catch
 
     nucleus_mask = get_dapi_mask (dapi);
@@ -244,19 +300,64 @@ function main (argv)
       cell_dapi = whole_range (dapi(pixels_idx), bit_max);
 
       clf ();
-      subplot (2, 3, 1);
+      subplot (3, 3, 1);
       imshow_current_nucleus_mask (dapi_max_projection, pixels_idx,
                                    size (dapi));
 
-      subplot (2, 3, 2);
+      subplot (3, 3, 2);
       status_h2b = imhist_channel (cell_h2b, "H2B");
-      subplot (2, 3, 3);
+      subplot (3, 3, 3);
       status_h2ax = imhist_channel (cell_h2ax, "H2AX");
 
-      plot_log_fpath = fullfile (fdir, sprintf ("%s-cell-%i.png", fname, idx));
+      subplot (3, 3, 4);
+      scatter_image_density (cell_h2b, cell_h2ax,
+                             "H2B raw intensity", "H2AX raw intensity");
+      add_fit_plot_and_pcc (cell_h2b, cell_h2ax);
+      subplot (3, 3, 5);
+      scatter_image_density (cell_h2b, cell_dapi,
+                             "H2B raw intensity", "DAPI raw intensity");
+      add_fit_plot_and_pcc (cell_h2b, cell_dapi);
+      subplot (3, 3, 6);
+      scatter_image_density (cell_h2ax, cell_dapi,
+                             "H2AX raw intensity", "DAPI raw intensity");
+      add_fit_plot_and_pcc (cell_h2ax, cell_dapi);
 
-      print (plot_log_fpath, "-S1920,1080");
+      h2ax_h2b_ratio = cell_h2ax ./ cell_h2b;
 
+      subplot (3, 3, 7);
+      scatter_ratio_density (cell_dapi, h2ax_h2b_ratio,
+                             "DAPI raw intensity", "H2AX / H2B");
+      add_fit_plot_and_pcc (cell_dapi, h2ax_h2b_ratio);
+      subplot (3, 3, 8);
+      scatter_ratio_density (cell_h2b, h2ax_h2b_ratio,
+                             "H2B raw intensity", "H2AX / H2B");
+      add_fit_plot_and_pcc (cell_h2b, h2ax_h2b_ratio);
+
+      ## Normalized intensities by mean
+      ## Andrew wants this plot to make it easier to compare values
+      ## between cells.
+      norm_h2ax_h2b_ratio = ((cell_h2ax ./ mean (cell_h2ax))
+                             ./ (cell_h2b  ./ mean (cell_h2b)));
+      subplot (3, 3, 9);
+      scatter_ratio_density (cell_h2b, norm_h2ax_h2b_ratio,
+                             "H2B raw intensity",
+                             "Normalized (H2AX) / Normalized (H2B)");
+      add_fit_plot_and_pcc (cell_h2b, norm_h2ax_h2b_ratio);
+
+      plot_log_fpath = fullfile (fdir, sprintf ("%s-cell-%i-log.png", fname, idx));
+      print (plot_log_fpath, "-S1080,1080");
+
+      ## If all was good, make a figure with the normalized ratios only.
+      if (! status_h2ax && ! status_h2b)
+        clf ();
+        scatter_ratio_density (cell_h2b, norm_h2ax_h2b_ratio,
+                               "H2B raw intensity",
+                               "Normalized (H2AX) / Normalized (H2B)");
+        add_fit_plot_and_pcc (cell_h2b, norm_h2ax_h2b_ratio);
+
+        ratio_plot_fpath = fullfile (fdir, sprintf ("%s-cell-%i.png", fname, idx));
+        print (ratio_plot_fpath, "-S400,400");
+      endif
     endfor
   endfor
 
